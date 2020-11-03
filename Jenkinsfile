@@ -66,8 +66,8 @@ spec:
       steps {
         container('helm') {
           sh """
-          #helm ls
-          #aws eks --region us-east-2 update-kubeconfig --name cloudfront
+          helm ls
+          aws eks --region ap-south-1 update-kubeconfig --name cloudfront
           helm repo add stable https://charts.helm.sh/stable 
           helm repo update 
           helm install mysql stable/mysql 
