@@ -67,6 +67,7 @@ spec:
         container('helm') {
           sh """
           #helm ls
+          kubectl get nodes
           aws eks --region ap-south-1 update-kubeconfig --name cloudfront
           helm repo add stable https://charts.helm.sh/stable 
           helm repo update 
