@@ -24,21 +24,21 @@ spec:
   # Use service account that can deploy to all namespaces
   
   containers:
-  - name: aws
-    image: amazon/aws-cli:latest
-    command:
-    - cat
-    tty: true
-  - name: gcloud
-    image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
-    command:
-    - cat
-    tty: true
-  - name: helm
-    image: 479022012441.dkr.ecr.ap-south-1.amazonaws.com/new:latest
-    command:
-    - cat
-    tty: true
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.0.0
+    imagePullPolicy: Always
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+  volumes:
+  - name: docker-config
+    projected:
+      sources:
+      - secret:
+          name: regcred
+          items:
+            - key: .dockerconfigjson
+              path: config.json
     
 """
 }
@@ -46,34 +46,10 @@ spec:
   stages {
     stage('Test') {
       steps {
-        container('aws') {
+        container('kaniko') {
           sh """
-           aws eks --region ap-south-1 update-kubeconfig --name cloudfront
+          /kaniko/executor --dockerfile `pwd`/Dockerfile --context `pwd` --destination=ravindra777/dockertest
           """
-        }
-      }
-    }
-    stage('Build and push image with Container Builder') {
-      steps {
-        container('gcloud') {
-          sh "#gcloud auth list"
-          sh "#PYTHONUNBUFFERED=1 gcloud builds submit -t  us.gcr.io/still-smithy-279711/go . "
-          sh "#gcloud container clusters get-credentials cluster-1 --zone us-central1-c --project still-smithy-279711"
-        }
-      }
-    }
-    stage('Deploy ') {
-      steps {
-        container('helm') {
-          sh """
-          #helm ls
-          kubectl get nodes
-          aws eks --region ap-south-1 update-kubeconfig --name cloudfront
-          helm repo add stable https://charts.helm.sh/stable 
-          helm repo update 
-          helm install mysql stable/mysql 
-          #helm install sampleapp  sampleapp/ -n test
-          """ 
         }
       }
     }
