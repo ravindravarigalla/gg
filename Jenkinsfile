@@ -27,9 +27,16 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:v1.0.0
     imagePullPolicy: Always
+    args: ["--dockerfile=Dockerfile",
+            "--context=https://github.com/ravindravarigalla/sample333.git",
+            "--destination=ravindra777/dockertest:v1"]
     volumeMounts:
       - name: docker-config
         mountPath: /kaniko/.docker
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
   volumes:
   - name: docker-config
     projected:
